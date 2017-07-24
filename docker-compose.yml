@@ -1,0 +1,205 @@
+version: "3.2"
+
+services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: ${PROJECT_PREFIX}nginx-proxy
+    ports:
+      - 80:80
+      - 443:443
+      - "${APP_WEBSOCKET_FRONTEND_PORT}:${APP_WEBSOCKET_FRONTEND_PORT}"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
+  db:
+    image: mysql:5.5
+    container_name: ${PROJECT_PREFIX}db
+    expose:
+      - 3306
+    environment:
+      - "MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}"
+      - "MYSQL_DATABASE=${MYSQL_DATABASE}"
+      - "MYSQL_USER=${MYSQL_USER}"
+      - "MYSQL_PASSWORD=${MYSQL_PASSWORD}"
+    volumes:
+      - "orocrm_mysql_dir:/var/lib/mysql"
+
+  mail:
+    image: catatnight/postfix
+    container_name: orocrm_mail
+    expose:
+      - "25"
+    environment:
+      - "maildomain=${APP_MAILER_HOST}"
+      - "smtp_user=${APP_MAILER_USER}@${APP_MAILER_HOST}:${APP_MAILER_PASSWORD}"
+
+  orocrm:
+    image: widgento/orocrm
+    container_name: ${PROJECT_PREFIX}orocrm
+    links:
+      - "db"
+      - "mail"
+      - "nginx-proxy"
+    expose:
+      - 80
+      - 443
+    volumes:
+      - "orocrm_app_dir:${OROCRM_ROOT_DIR}"
+      - "orocrm_bundle_dir:${OROCRM_BUNDLE_DIR}"
+      - "orocrm_cache_dir:${OROCRM_CACHE_DIR}"
+      - "orocrm_uploads_dir:${OROCRM_UPLOADS_DIR}"
+      - "orocrm_media_dir:${OROCRM_MEDIA_DIR}"
+      - "orocrm_attachment_dir:${OROCRM_ATTACHMENT_DIR}"
+      - "orocrm_import_export_dir:${OROCRM_IMPORT_EXPORT_DIR}"
+      - "orocrm_xdebug_log_dir:${XDEBUG_LOG_DIR}"
+      - "orocrm_composer_cache_dir:${COMPOSER_CACHE_DIR}"
+      - "~/.ssh/id_rsa:/var/www/.ssh/id_rsa:ro"
+      - "~/.ssh/id_rsa.pub:/var/www/.ssh/id_rsa.pub:ro"
+    environment:
+      - APP_DB_DRIVER
+      - APP_DB_HOST
+      - APP_DB_PORT
+      - APP_MAILER_TRANSPORT
+      - APP_MAILER_HOST
+      - APP_MAILER_PORT
+      - APP_MAILER_ENCRYPTION
+      - APP_MAILER_USER
+      - APP_MAILER_PASSWORD
+      - APP_WEBSOCKET_BIND_PORT
+      - APP_WEBSOCKET_BACKEND_PORT
+      - APP_WEBSOCKET_FRONTEND_PORT
+      - APP_SECRET
+      - VIRTUAL_HOST
+      - SYMFONY_ENV
+      - SYMFONY_INDEX_FILE
+      - OROCRM_ROOT_DIR
+      - GIT_URI
+      - GIT_REF
+      - DEV_USER_ID
+      - DEV_GROUP_ID
+      - OROCRM_ADMIN_EMAIL
+      - OROCRM_ADMIN_PASSWORD
+      - MYSQL_DATABASE
+      - MYSQL_USER
+      - MYSQL_PASSWORD
+      - BASE_URL
+      - APP_SAMPLE_DATA
+      - OROCRM_BUNDLE_DIR
+      - XDEBUG_LOG_DIR
+      - GITHUB_OAUTH_TOKEN
+
+  cron:
+    image: widgento/orocrm
+    command: orocrm-cron-run.sh
+    container_name: ${PROJECT_PREFIX}cron
+    links:
+      - "db"
+      - "mail"
+    volumes:
+      - "orocrm_app_dir:${OROCRM_ROOT_DIR}"
+      - "orocrm_bundle_dir:${OROCRM_BUNDLE_DIR}"
+      - "orocrm_cache_dir:${OROCRM_CACHE_DIR}"
+      - "orocrm_uploads_dir:${OROCRM_UPLOADS_DIR}"
+      - "orocrm_media_dir:${OROCRM_MEDIA_DIR}"
+      - "orocrm_attachment_dir:${OROCRM_ATTACHMENT_DIR}"
+      - "orocrm_import_export_dir:${OROCRM_IMPORT_EXPORT_DIR}"
+      - "orocrm_xdebug_log_dir:${XDEBUG_LOG_DIR}"
+      - "orocrm_composer_cache_dir:${COMPOSER_CACHE_DIR}"
+    environment:
+      - SYMFONY_ENV
+      - OROCRM_ROOT_DIR
+      - DEV_USER_ID
+      - DEV_GROUP_ID
+      - XDEBUG_LOG_DIR
+
+  websocket:
+    image: widgento/orocrm
+    command: orocrm-websocket-run.sh
+    container_name: ${PROJECT_PREFIX}websocket
+    links:
+      - "db"
+      - "mail"
+      - "nginx-proxy"
+    expose:
+      - "${APP_WEBSOCKET_FRONTEND_PORT}"
+    volumes:
+      - "orocrm_app_dir:${OROCRM_ROOT_DIR}"
+      - "orocrm_bundle_dir:${OROCRM_BUNDLE_DIR}"
+      - "orocrm_cache_dir:${OROCRM_CACHE_DIR}"
+      - "orocrm_uploads_dir:${OROCRM_UPLOADS_DIR}"
+      - "orocrm_media_dir:${OROCRM_MEDIA_DIR}"
+      - "orocrm_attachment_dir:${OROCRM_ATTACHMENT_DIR}"
+      - "orocrm_import_export_dir:${OROCRM_IMPORT_EXPORT_DIR}"
+      - "orocrm_xdebug_log_dir:${XDEBUG_LOG_DIR}"
+      - "orocrm_composer_cache_dir:${COMPOSER_CACHE_DIR}"
+    environment:
+      - SYMFONY_ENV
+      - OROCRM_ROOT_DIR
+      - DEV_USER_ID
+      - DEV_GROUP_ID
+      - XDEBUG_LOG_DIR
+      - VIRTUAL_HOST
+
+  message-consumer:
+    image: widgento/orocrm
+    command: orocrm-message-consumer-run.sh
+    container_name: ${PROJECT_PREFIX}message-consumer
+    links:
+      - "db"
+      - "mail"
+    volumes:
+      - "orocrm_app_dir:${OROCRM_ROOT_DIR}"
+      - "orocrm_bundle_dir:${OROCRM_BUNDLE_DIR}"
+      - "orocrm_cache_dir:${OROCRM_CACHE_DIR}"
+      - "orocrm_uploads_dir:${OROCRM_UPLOADS_DIR}"
+      - "orocrm_media_dir:${OROCRM_MEDIA_DIR}"
+      - "orocrm_attachment_dir:${OROCRM_ATTACHMENT_DIR}"
+      - "orocrm_import_export_dir:${OROCRM_IMPORT_EXPORT_DIR}"
+      - "orocrm_xdebug_log_dir:${XDEBUG_LOG_DIR}"
+      - "orocrm_composer_cache_dir:${COMPOSER_CACHE_DIR}"
+    environment:
+      - SYMFONY_ENV
+      - OROCRM_ROOT_DIR
+      - DEV_USER_ID
+      - DEV_GROUP_ID
+      - XDEBUG_LOG_DIR
+
+volumes:
+  orocrm_app_dir:
+      driver_opts:
+        type: none
+        device: "${HOST_OROCRM_ROOT_DIR}"
+        o: bind
+
+  orocrm_bundle_dir:
+      driver_opts:
+        type: none
+        device: "${HOST_OROCRM_BUNDLE_DIR}"
+        o: bind
+
+  orocrm_mysql_dir:
+      driver: local
+
+  orocrm_cache_dir:
+      driver: local
+
+  orocrm_uploads_dir:
+      driver: local
+
+  orocrm_media_dir:
+      driver: local
+
+  orocrm_attachment_dir:
+      driver: local
+
+  orocrm_import_export_dir:
+      driver: local
+
+  orocrm_postgresql_dir:
+      driver: local
+
+  orocrm_xdebug_log_dir:
+      driver: local
+
+  orocrm_composer_cache_dir:
+      driver: local
