@@ -4,4 +4,3 @@ Feature: Channel setup
 
   Channel and integration are removed together automatically.
   It can be invoked from channel or integration page
-

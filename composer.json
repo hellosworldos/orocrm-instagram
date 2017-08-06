@@ -1,0 +1,7 @@
+{
+    "name": "widgento/orocrm-instagram",
+    "description": "OroCRM Instagram connector",
+    "type": "symfony-bundle",
+    "license": "GNU General Public License v3.0",
+    "require": {}
+}
