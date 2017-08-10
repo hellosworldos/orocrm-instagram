@@ -10,7 +10,16 @@ Feature: Instagram integration type
 
   @ui
   Scenario: as admin I can create integrations with type "Instagram"
-    When I go to integration/create
+    When I go to System/Integrations/ Manage Integrations
+    And press "Create Integration"
+    Then I cannot click button "Request access token"
+    When I fill form with:
+      | Type          | Instagram     |
+      | Client ID     | client_id     |
+      | Client Secret | client_secret |
+    And I click "Request access token"
+    And new popup is open ...
+
     Then I can select form "type" with value "instagram"
     And there is a field "client_id"
     And there is a field "client_secret"

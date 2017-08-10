@@ -1,0 +1,3 @@
+widgento_oro_crm_instagram_homepage:
+    path:     /
+    defaults: { _controller: WidgentoOroCRMInstagramBundle:Default:index }

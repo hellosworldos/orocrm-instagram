@@ -3,5 +3,10 @@
     "description": "OroCRM Instagram connector",
     "type": "symfony-bundle",
     "license": "GNU General Public License v3.0",
-    "require": {}
+    "require": {},
+    "autoload": {
+      "psr-4": {
+        "": "src/"
+      }
+    }
 }

@@ -1,0 +1,3 @@
+widgento_oro_crm_instagram:
+    resource: "@WidgentoOroCRMInstagramBundle/Resources/config/routing.yml"
+    prefix:   /
