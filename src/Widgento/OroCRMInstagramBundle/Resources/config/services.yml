@@ -1,4 +1,19 @@
+parameters:
+  widgento.orocrm_instagram.provider.channel_type.class: Widgento\OroCRMInstagramBundle\Provider\ChannelType
+  widgento.orocrm_instagram.transport.rest_transport.class: Widgento\OroCRMInstagramBundle\Provider\Transport\Rest\InstagramRestTransport
+
 services:
-#    widgento_oro_crm_instagram.example:
-#        class: Widgento\OroCRMInstagramBundle\Example
-#        arguments: ["@service_id", "plain_value", "%parameter%"]
+    # Integration type
+    widgento.orocrm_instagram.provider.channel_type:
+        class: %widgento.orocrm_instagram.provider.channel_type.class%
+        tags:
+            - { name: oro_integration.channel, type: widgento_instagram }
+
+    # Integration related services
+    widgento.orocrm_instagram.transport.rest_transport:
+        class: %widgento.orocrm_instagram.transport.rest_transport.class%
+        parent: oro_integration.transport.rest.abstract_transport
+        arguments:
+            - '@oro_importexport.serializer'
+        tags:
+            - { name: oro_integration.transport, type: widgento_instagram_rest, channel_type: widgento_instagram }
