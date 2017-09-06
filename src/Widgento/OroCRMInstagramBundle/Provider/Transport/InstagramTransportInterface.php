@@ -13,8 +13,13 @@ interface InstagramTransportInterface extends TransportInterface
      * @return \Iterator
      * @throws RestException
      */
-    public function getSelfMediaRecent();
+    public function getSelfRecentMedia();
 
+    /**
+     * @param $userId
+     * @return \Iterator
+     * @throws RestException
+     */
     public function getUserRelationship($userId);
 
     /**
